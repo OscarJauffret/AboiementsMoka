@@ -128,14 +128,13 @@ class Server:
         formatted_barks = ""
         translate_mode = {"Automatic": "Automatique", "Manual": "Manuel", "Not handled": "Non traité"}
         for bark in last_barks:
+            print("bark", bark)
             formatted_barks += f"{self.format_timestamp(bark[0])};{translate_mode[str(bark[1]).capitalize()]};{bark[2]}? "
         return formatted_barks[:-2]
 
     def format_timestamp(self, timestamp):
-        # Convertir le timestamp en objet datetime
-        dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
         # Formater la date et l'heure
-        formatted_date = dt.strftime('%d %B, %Hh%M')
+        formatted_date = timestamp.strftime('%d %B, %Hh%M')
         return formatted_date
 
     def start_program(self):
