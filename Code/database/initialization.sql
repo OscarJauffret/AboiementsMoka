@@ -21,5 +21,5 @@ create table if not exists Barks (
     id int primary key auto_increment,
     date timestamp not null,
     mode enum('Automatic', 'Manual', 'Not handled') not null,
-    voice enum('Papa', 'Maman', 'Héloïse', 'Oscar', 'Augustine') not null
+    voice enum('Papa', 'Maman', 'Héloïse', 'Oscar', 'Augustine')
 );
