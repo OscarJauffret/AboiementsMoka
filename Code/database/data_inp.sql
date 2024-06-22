@@ -21,12 +21,12 @@ insert into KnownBarks (bark_id, harmonic, amplitude) values (3, 23, 0.16);
 insert into KnownBarks (bark_id, harmonic, amplitude) values (3, 24, 0.11);
 
 select * from KnownBarks;
-*/
+
 insert into Parameters (name, value) values ('noise_threshold', 10.0);
 insert into Parameters (name, value) values ('resemblance_threshold', 0.7);
 insert into Parameters (name, value) values ('cooldown', 120);
 insert into Parameters (name, value) values ('delay', 2);
-
+*/
 insert into Barks (date, mode, voice) values ('2024-07-22 21:34:30', 'Automatic', 'Papa');
 insert into Barks (date, mode, voice) values ('2024-07-22 22:35:30', 'Manual', 'Maman');
-insert into Barks (date, mode) values ('2024-07-23 23:34:30', 'Not handled');
+insert into Barks (date, mode, voice) values ('2024-07-23 23:34:30', 'Not handled', null);

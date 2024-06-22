@@ -128,7 +128,6 @@ class Server:
         formatted_barks = ""
         translate_mode = {"Automatic": "Automatique", "Manual": "Manuel", "Not handled": "Non traité"}
         for bark in last_barks:
-            print("bark", bark)
             formatted_barks += f"{self.format_timestamp(bark[0])};{translate_mode[str(bark[1]).capitalize()]};{bark[2]}? "
         return formatted_barks[:-2]
 
