@@ -118,26 +118,26 @@ def insert_bark(bark: list):
         cnx.close()
     return True
 
-#def insert_bark(harmonics: list[[int, float]]):
-#    cnx, cursor = connect_to_db()
-#    try:
-#        max_id = get_max_bark_id(cursor)
-#        for harmonic, amplitude in harmonics:
-#            query = "INSERT INTO knownbarks (bark_id, harmonic, amplitude) VALUES (%s, %s, %s)"
-#            cursor.execute(query, (max_id, harmonic, amplitude))
-#        cnx.commit()
-#    except mysql.connector.Error:
-#        return False
-#    finally:
-#        cursor.close()
-#        cnx.close()
-#    return True
-#
-#
-#def get_max_bark_id(cursor):
-#    max_id_query = "SELECT MAX(bark_id) FROM knownbarks"
-#    cursor.execute(max_id_query)
-#    max_id = cursor.fetchone()
-#    max_id_query = max_id[0] if max_id else 0
-#    max_id = max_id_query + 1
-#    return max_id
+def insert_known_bark(harmonics: list[[int, float]]):
+    cnx, cursor = connect_to_db()
+    try:
+        max_id = get_max_bark_id(cursor)
+        for harmonic, amplitude in harmonics:
+            query = "INSERT INTO knownbarks (bark_id, harmonic, amplitude) VALUES (%s, %s, %s)"
+            cursor.execute(query, (max_id, harmonic, amplitude))
+        cnx.commit()
+    except mysql.connector.Error:
+        return False
+    finally:
+        cursor.close()
+        cnx.close()
+    return True
+
+
+def get_max_bark_id(cursor):
+    max_id_query = "SELECT MAX(bark_id) FROM knownbarks"
+    cursor.execute(max_id_query)
+    max_id = cursor.fetchone()
+    max_id_query = max_id[0] if max_id else 0
+    max_id = max_id_query + 1
+    return max_id

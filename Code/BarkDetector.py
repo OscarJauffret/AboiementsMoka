@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from signal_helper import generate_random_signal, reconstruct_signal_based_on_harmonics
 from db_requests import get_known_barks, get_parameters, insert_bark
 from time import sleep
+import threading
 
 SAMPLE_RATE = 44100
 
@@ -17,7 +18,6 @@ class BarkDetector:
         self.audio_files = None
         self.available_voices = ["Papa", "Maman", "Héloïse", "Oscar", "Augustine"]
         self.update_audio_files()
-        self.time_since_last_play = 0
         self.ref_E = 1.0
         self.min_time_between_audio = 120
         self.noise_threshold = 10
@@ -25,7 +25,6 @@ class BarkDetector:
         self.amplitude_resemblance_threshold = 0.9
         self.resemblance_threshold = 0.7
         self.delay_before_message = 2
-        self.min_time_between_audio_frames = self.min_time_between_audio * SAMPLE_RATE
         print("Bark detector initialized.")
 
     def update_audio_files(self):
@@ -47,7 +46,6 @@ class BarkDetector:
         self.noise_threshold = int(new_db_threshold)
         self.resemblance_threshold = new_resemblance_threshold
         self.min_time_between_audio = int(new_cooldown)
-        self.min_time_between_audio_frames = self.min_time_between_audio * SAMPLE_RATE
 
     def _list_files(self, path):
         files = []
@@ -81,11 +79,9 @@ class BarkDetector:
             data.append(i[0])
         return data
 
-
     def detect_bark(self, indata, frames, time, status):
         energy = np.sum(np.square(indata))
         volume = self.energy_to_db(energy)
-        self.check_played_recently(volume)
         if (volume > self.noise_threshold) and not self.played_sound_recently:
             indata = self.flatten_signal(indata)
             power = self.fourier_transform(indata)
@@ -94,7 +90,7 @@ class BarkDetector:
             if self.compare_with_data(harmonics):
                 sleep(self.delay_before_message)
                 self.played_sound_recently = True
-                self.time_since_last_play = 0
+                threading.Timer(self.min_time_between_audio, self.reset_recent_variables).start()
                 self.play_sound()
 
     def plot_data(self, indata, power):
@@ -110,25 +106,14 @@ class BarkDetector:
         if not chosen_file:
             self.play_sound()
         chosen_file = "./audio/nopeeking.mp3"
-        #print(f"Playing {chosen_file}")
         pygame.mixer.music.load(chosen_file)
         pygame.mixer.music.play()
         if chosen_file.split(".")[1] == "m4a":
             while pygame.mixer.music.get_busy():  # wait for music to finish playing
                 pygame.time.Clock().tick(10)
 
-    def check_played_recently(self, volume):
-        if self.played_sound_recently and self.time_since_last_play == 1200:
-            self.reset_recent_variables()
-        if self.played_sound_recently:
-            self.time_since_last_play += 1
-        #    print(f"Temps restant : {round(1200 - self.time_since_last_play)}")
-        #else:
-        #    print(f"{volume = }")
-
     def reset_recent_variables(self):
         self.played_sound_recently = False
-        self.time_since_last_play = 0
 
     def compare_with_data(self, harmonics):
         known_barks = get_known_barks()
