@@ -153,7 +153,9 @@ def get_highest_harmonics(power, threshold_ratio=0.1):
     power_normalized = power / max_amplitude
     for i in range(1, len(power_normalized) // 2):
         if power_normalized[i] > threshold_ratio:
-            harmonics.append((i, power_normalized[i]))
+            frequency = i * 44100 / len(power_normalized)
+            harmonics.append((frequency, power_normalized[i]))
+            #harmonics.append((i, power_normalized[i]))
     return harmonics
 
 
