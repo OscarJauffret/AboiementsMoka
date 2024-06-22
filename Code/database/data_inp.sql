@@ -25,5 +25,6 @@ select * from KnownBarks;
 insert into Parameters (name, value) values ('noise_threshold', 10.0);
 insert into Parameters (name, value) values ('resemblance_threshold', 0.7);
 insert into Parameters (name, value) values ('cooldown', 120);
+insert into Parameters (name, value) values ('delay', 2);
 
 update Parameters set value = 0.8 where name = 'resemblance_threshold';

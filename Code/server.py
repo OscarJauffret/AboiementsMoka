@@ -3,9 +3,13 @@ from BarkDetector import BarkDetector
 from datetime import datetime
 import os
 import threading
-from db_requests import get_parameters, modify_parameters
+from db_requests import get_parameters, modify_parameters, get_last_barks
 import sounddevice as sd
 from BarkDetector import SAMPLE_RATE
+import locale
+
+
+locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
 
 
 class Server:
@@ -74,7 +78,7 @@ class Server:
             f.write(file_data)
         print(f"File received and saved as '{file_name}'")
         self.bark_detector.update_audio_files()
-        self.bark_detector.manual_message()
+        #self.bark_detector.manual_message()
 
     def process(self, message, client):
         print(f"Received message: {message}")
@@ -83,8 +87,9 @@ class Server:
                 self.stop_program()
             case "1":  # allumer le programme
                 self.start_program()
-            case "2":
-                self.bark_detector.manual_message()
+            case message if message.startswith("2"):
+                received_voice = eval(message.split(" ", maxsplit=1)[1])
+                self.bark_detector.manual_detection(received_voice)
             case message if message.startswith("3"):
                 received_thresholds = eval(message.split(" ", maxsplit=1)[1])
                 new_db_threshold = received_thresholds[0]
@@ -94,6 +99,7 @@ class Server:
                 modify_parameters([("noise_threshold", new_db_threshold), ("resemblance_threshold", new_resemblance_threshold), ("cooldown", new_cooldown)])
             case "REQUEST_PARAMETERS":
                 parameters = get_parameters()
+                parameters = self.format_parameters(parameters)
                 parameters = str(parameters) + "END_OF_MESSAGE"
                 print(parameters)
                 client.send(parameters.encode())
@@ -104,8 +110,33 @@ class Server:
                     message = "1"
                 message += "END_OF_MESSAGE"
                 client.send(message.encode())
+            case "REQUEST_LAST_BARKS":
+                last_barks = get_last_barks()
+                last_barks = self.format_last_barks(last_barks)
+                last_barks = str(last_barks) + "END_OF_MESSAGE"
+                client.send(last_barks.encode())
             case _:
                 print("Unhandled message.")
+
+    def format_parameters(self, parameters):
+        formatted_parameters = ""
+        for param in parameters:
+            formatted_parameters += f"{param[1]}:{param[2]}, "
+        return formatted_parameters[:-2]
+
+    def format_last_barks(self, last_barks):
+        formatted_barks = ""
+        translate_mode = {"Automatic": "Automatique", "Manual": "Manuel", "Not handled": "Non traité"}
+        for bark in last_barks:
+            formatted_barks += f"{self.format_timestamp(bark[0])};{translate_mode[str(bark[1]).capitalize()]};{bark[2]}? "
+        return formatted_barks[:-2]
+
+    def format_timestamp(self, timestamp):
+        # Convertir le timestamp en objet datetime
+        dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+        # Formater la date et l'heure
+        formatted_date = dt.strftime('%d %B, %Hh%M')
+        return formatted_date
 
     def start_program(self):
         self.bark_detector = BarkDetector()

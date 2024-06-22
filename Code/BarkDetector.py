@@ -4,7 +4,7 @@ import os
 import random
 import matplotlib.pyplot as plt
 from signal_helper import generate_random_signal, reconstruct_signal_based_on_harmonics
-from db_requests import get_known_barks, get_parameters
+from db_requests import get_known_barks, get_parameters, insert_bark
 from time import sleep
 
 SAMPLE_RATE = 44100
@@ -72,8 +72,8 @@ class BarkDetector:
 
         return signal_fft_power
 
-    def manual_message(self):
-        self.play_sound()
+    def manual_message(self, voice):
+        self.play_sound(voice)
 
     def flatten_signal(self, indata):
         data = []
@@ -92,6 +92,7 @@ class BarkDetector:
             harmonics = get_highest_harmonics(power)
             print(f"{harmonics = }")
             if self.compare_with_data(harmonics):
+                sleep(self.delay_before_message)
                 self.played_sound_recently = True
                 self.time_since_last_play = 0
                 self.play_sound()
@@ -102,10 +103,10 @@ class BarkDetector:
         plt.legend()
         plt.show()
 
-    def play_sound(self):
-        sleep(self.delay_before_message)
-        chosen_voice = random.randint(0, len(self.audio_files) - 1)
-        chosen_file = random.choice(self.audio_files[chosen_voice])
+    def play_sound(self, voice=None):
+        if voice is None:
+            voice = random.randint(0, len(self.audio_files) - 1)
+        chosen_file = random.choice(self.audio_files[voice])
         if not chosen_file:
             self.play_sound()
         chosen_file = "./audio/nopeeking.mp3"

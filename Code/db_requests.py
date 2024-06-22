@@ -91,6 +91,31 @@ def get_known_barks():
         cnx.close()
     return known_barks
 
+def get_last_barks():
+    cnx, cursor = connect_to_db()
+    try:
+        query = "SELECT (date, mode, voice) FROM Barks WHERE date >= CURRENT_TIMESTAMP - INTERVAL 3 DAY ORDER BY date DESC LIMIT 5"
+        cursor.execute(query)
+        last_barks = cursor.fetchall()
+    except mysql.connector.Error:
+        return False
+    finally:
+        cursor.close()
+        cnx.close()
+    return last_barks
+
+def insert_bark(bark: list):
+    cnx, cursor = connect_to_db()
+    try:
+        query = "INSERT INTO Barks (date, mode, voice) VALUES (%s, %s, %s)"
+        cursor.execute(query, (bark[0], bark[1], bark[2]))
+        cnx.commit()
+    except mysql.connector.Error:
+        return False
+    finally:
+        cursor.close()
+        cnx.close()
+    return True
 
 #def insert_bark(harmonics: list[[int, float]]):
 #    cnx, cursor = connect_to_db()
