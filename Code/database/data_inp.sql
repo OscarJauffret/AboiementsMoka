@@ -1,7 +1,7 @@
-use mokadb;
+use MokaDB;
 
 -- Insert data into the KnownBarks table
-
+/*
 insert into KnownBarks (bark_id, harmonic, amplitude) values (1, 11, 1);
 
 insert into KnownBarks (bark_id, harmonic, amplitude) values (2, 7, 0.1);
@@ -21,10 +21,8 @@ insert into KnownBarks (bark_id, harmonic, amplitude) values (3, 23, 0.16);
 insert into KnownBarks (bark_id, harmonic, amplitude) values (3, 24, 0.11);
 
 select * from KnownBarks;
-
+*/
 insert into Parameters (name, value) values ('noise_threshold', 10.0);
 insert into Parameters (name, value) values ('resemblance_threshold', 0.7);
 insert into Parameters (name, value) values ('cooldown', 120);
 insert into Parameters (name, value) values ('delay', 2);
-
-update Parameters set value = 0.8 where name = 'resemblance_threshold';

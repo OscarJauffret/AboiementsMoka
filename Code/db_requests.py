@@ -94,10 +94,11 @@ def get_known_barks():
 def get_last_barks():
     cnx, cursor = connect_to_db()
     try:
-        query = "SELECT (date, mode, voice) FROM Barks WHERE date >= CURRENT_TIMESTAMP - INTERVAL 3 DAY ORDER BY date DESC LIMIT 5"
+        query = "SELECT date, mode, voice FROM Barks WHERE date >= CURRENT_TIMESTAMP - INTERVAL 3 DAY ORDER BY date DESC LIMIT 5"
         cursor.execute(query)
         last_barks = cursor.fetchall()
-    except mysql.connector.Error:
+    except mysql.connector.Error as e:
+        print("Erreur lors de la récupération des derniers aboiements", e)
         return False
     finally:
         cursor.close()
