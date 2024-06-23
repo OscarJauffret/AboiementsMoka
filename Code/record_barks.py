@@ -13,6 +13,8 @@ class BarkListener:
         self.played_sound_recently = False
         self.noise_threshold = 10  # Ajustez ce seuil selon vos besoins
         self.sample_rate = 44100  # Ajustez selon le taux d'échantillonnage que vous utilisez
+        self.bark_duration = 1  # Durée de l'enregistrement en secondes
+        self.bark_number = 0
         self.buffer = []  # Tampon pour stocker les données audio avant l'enregistrement
         self.previous_buffer = deque(maxlen=22050)  # Tampon pour stocker les données audio avant le déclenchement
         print("Bark detector initialized.")
@@ -32,7 +34,7 @@ class BarkListener:
         if volume > self.noise_threshold and not self.played_sound_recently:
             print(f"Bark detected with volume: {volume}")
             self.played_sound_recently = True
-            threading.Timer(1, self.save_indata).start()
+            threading.Timer(self.bark_duration, self.save_indata).start()
 
     def save_indata(self):
         self.played_sound_recently = False
@@ -40,8 +42,8 @@ class BarkListener:
         if len(self.buffer) == 0:
             return
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        file_path = f"./barks/bark_{timestamp}.wav"
-        buffer_path = f"./barks/buffer_{timestamp}.txt"
+        file_path = f"./barks/bark_{timestamp}_{self.bark_number}.wav"
+        buffer_path = f"./barks/buffer_{timestamp}_{self.bark_number}.txt"
         # Convertir le tampon en numpy array et sauvegarder
         audio_data = np.array(self.buffer, dtype=np.float32)
         audio_data = np.int16(audio_data / np.max(np.abs(audio_data)) * 32767)
@@ -50,7 +52,9 @@ class BarkListener:
         # Sauvegarder le tampon pour analyse
         with open(buffer_path, "w") as f:
             f.write(str(self.buffer))
+        self.previous_buffer.extend(self.buffer)
         self.buffer = []  # Réinitialiser le tampon
+        self.bark_number += 1
 
 
 if __name__ == "__main__":
