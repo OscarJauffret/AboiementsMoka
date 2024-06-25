@@ -1,22 +1,21 @@
 import numpy as np
-import pygame
 import os
 import random
 import matplotlib.pyplot as plt
-from signal_helper import generate_random_signal, reconstruct_signal_based_on_harmonics
 from db_requests import get_known_barks, get_parameters, insert_bark
 from time import sleep
 import threading
 from collections import deque
 from pydub import AudioSegment
 from pydub.playback import play
+from datetime import datetime
 
 SAMPLE_RATE = 44100
+
 
 class BarkDetector:
 
     def __init__(self):
-        pygame.mixer.init()
         self.played_sound_recently = False
         self.audio_files = None
         self.available_voices = ["Papa", "Maman", "Héloïse", "Oscar", "Augustine"]
@@ -77,6 +76,8 @@ class BarkDetector:
         return signal_fft_power
 
     def manual_message(self, voice):
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        insert_bark([timestamp, "Manual", str(voice)])
         self.play_sound(str(voice))
 
     def detect_bark(self, indata, frames, time, status):
@@ -104,7 +105,10 @@ class BarkDetector:
             sleep(self.delay_before_message)
             self.played_sound_recently = True
             threading.Timer(self.min_time_between_audio, self.reset_recent_variables).start()
-            self.play_sound()
+            voice = random.randint(0, len(self.audio_files) - 1)
+            voice = self.available_voices[voice]
+            insert_bark([datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Automatic", voice])
+            self.play_sound(voice)
         self.buffer = []
 
     def plot_data(self, indata, power):
@@ -116,13 +120,11 @@ class BarkDetector:
     def play_sound(self, voice=None):
         if voice is None:
             voice = random.randint(0, len(self.audio_files) - 1)
-        voice = self.available_voices.index(voice)
-        print(self.audio_files)
+        else:
+            voice = self.available_voices.index(voice)
         chosen_file = random.choice(self.audio_files[voice])
-        print(chosen_file)
         if not chosen_file:
             self.play_sound()
-        #chosen_file = "./audio/nopeeking.mp3"
         audio = AudioSegment.from_file(chosen_file, format="m4a")
         play(audio)
 
