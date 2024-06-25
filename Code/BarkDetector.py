@@ -8,6 +8,8 @@ from db_requests import get_known_barks, get_parameters, insert_bark
 from time import sleep
 import threading
 from collections import deque
+from pydub import AudioSegment
+from pydub.playback import play
 
 SAMPLE_RATE = 44100
 
@@ -24,7 +26,7 @@ class BarkDetector:
         self.noise_threshold = 10
         self.harmonic_resemblance_threshold = 0.5
         self.amplitude_resemblance_threshold = 0.9
-        self.resemblance_threshold = 0.7
+        self.resemblance_threshold = 0.4
         self.delay_before_message = 2
         self.detected_sound_recently = False
         self.buffer = []  # Tampon pour stocker les données audio avant l'enregistrement
@@ -52,9 +54,9 @@ class BarkDetector:
         self.min_time_between_audio = int(new_cooldown)
 
     def _list_files(self, path):
-        files = []
-        for voice in self.available_voices:
-            files.extend(self._list_files_for_voice(os.path.join(path, voice)))
+        files = [[] for _ in range(len(self.available_voices))]
+        for i, voice in enumerate(self.available_voices):
+            files[i] = self._list_files_for_voice(os.path.join(path, voice))
         return files
 
     def _list_files_for_voice(self, path):
@@ -75,7 +77,7 @@ class BarkDetector:
         return signal_fft_power
 
     def manual_message(self, voice):
-        self.play_sound(voice)
+        self.play_sound(str(voice))
 
     def detect_bark(self, indata, frames, time, status):
         energy = np.sum(np.square(indata))
@@ -114,15 +116,15 @@ class BarkDetector:
     def play_sound(self, voice=None):
         if voice is None:
             voice = random.randint(0, len(self.audio_files) - 1)
+        voice = self.available_voices.index(voice)
+        print(self.audio_files)
         chosen_file = random.choice(self.audio_files[voice])
+        print(chosen_file)
         if not chosen_file:
             self.play_sound()
-        chosen_file = "./audio/nopeeking.mp3"
-        pygame.mixer.music.load(chosen_file)
-        pygame.mixer.music.play()
-        if chosen_file.split(".")[1] == "m4a":
-            while pygame.mixer.music.get_busy():  # wait for music to finish playing
-                pygame.time.Clock().tick(10)
+        #chosen_file = "./audio/nopeeking.mp3"
+        audio = AudioSegment.from_file(chosen_file, format="m4a")
+        play(audio)
 
     def reset_recent_variables(self):
         self.played_sound_recently = False
@@ -156,10 +158,11 @@ class BarkDetector:
         return np.exp(-scale * amplitude_diff)
 
     def enough_resemblance(self, found_resemblance):
+        print(sum(found_resemblance)/len(found_resemblance))
         return sum(found_resemblance) / len(found_resemblance) > self.resemblance_threshold
 
 
-def get_highest_harmonics(power, threshold_ratio=0.1):
+def get_highest_harmonics(power, threshold_ratio=0.6):
     harmonics = []
     max_amplitude = np.max(power)
     power_normalized = power / max_amplitude

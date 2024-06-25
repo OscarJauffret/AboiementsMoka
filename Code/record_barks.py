@@ -60,7 +60,7 @@ class BarkListener:
 if __name__ == "__main__":
     os.makedirs("./barks", exist_ok=True)  # Créer le dossier de stockage des fichiers audio s'il n'existe pas
     bark_listener = BarkListener()
-    with sd.InputStream(callback=bark_listener.detect_bark, channels=1, samplerate=44100, device=2):
+    with sd.InputStream(callback=bark_listener.detect_bark, channels=1, samplerate=44100, device=1):
         print("Enregistrement en cours. Appuyez sur Ctrl+C pour arrêter.")
         try:
             while True:

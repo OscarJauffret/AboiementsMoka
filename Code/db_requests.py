@@ -94,7 +94,7 @@ def get_known_barks():
 def get_last_barks():
     cnx, cursor = connect_to_db()
     try:
-        query = "SELECT date, mode, voice FROM Barks WHERE date >= CURRENT_TIMESTAMP - INTERVAL 3 DAY ORDER BY date DESC LIMIT 5"
+        query = "SELECT date, mode, voice FROM barks WHERE date >= CURRENT_TIMESTAMP - INTERVAL 3 DAY ORDER BY date DESC LIMIT 5"
         cursor.execute(query)
         last_barks = cursor.fetchall()
     except mysql.connector.Error as e:
@@ -108,7 +108,7 @@ def get_last_barks():
 def insert_bark(bark: list):
     cnx, cursor = connect_to_db()
     try:
-        query = "INSERT INTO Barks (date, mode, voice) VALUES (%s, %s, %s)"
+        query = "INSERT INTO barks (date, mode, voice) VALUES (%s, %s, %s)"
         cursor.execute(query, (bark[0], bark[1], bark[2]))
         cnx.commit()
     except mysql.connector.Error:
@@ -126,7 +126,8 @@ def insert_known_bark(harmonics: list[[int, float]]):
             query = "INSERT INTO knownbarks (bark_id, harmonic, amplitude) VALUES (%s, %s, %s)"
             cursor.execute(query, (max_id, harmonic, amplitude))
         cnx.commit()
-    except mysql.connector.Error:
+    except mysql.connector.Error as e:
+        print(e)
         return False
     finally:
         cursor.close()
@@ -138,6 +139,7 @@ def get_max_bark_id(cursor):
     max_id_query = "SELECT MAX(bark_id) FROM knownbarks"
     cursor.execute(max_id_query)
     max_id = cursor.fetchone()
-    max_id_query = max_id[0] if max_id else 0
+    max_id_query = max_id[0] if max_id[0] else 0
+    print(max_id_query)
     max_id = max_id_query + 1
     return max_id

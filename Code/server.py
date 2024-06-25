@@ -45,15 +45,21 @@ class Server:
         try:
             while True:
                 # Lire la commande ou le type de données
-                header = client_socket.recv(1024).decode()
-                if not header:
+                try:
+                    header = client_socket.recv(1024).decode()
+                    if not header:
+                        break
+                    print(header)
+                    if header == "AUDIO_FILE":
+                        self.receive_file(client_socket)
+                    else:
+                        self.process(header, client_socket)
+                except ConnectionResetError:
+                    print("Connection reset by peer")
                     break
-                print(header)
-
-                if header == "AUDIO_FILE":
-                    self.receive_file(client_socket)
-                else:
-                    self.process(header, client_socket)
+                except Exception as e:
+                    print(f"Error: {e}")
+                    break
         finally:
             print("Connection closed.")
             self.connections.remove(client_socket)
@@ -63,7 +69,10 @@ class Server:
         file_data = b''
         while True:
             data = client_socket.recv(1024)
-            if not data or 'END_OF_FILE' in data.decode():
+            if not data:
+                break
+            if b'END_OF_FILE' in data:
+                file_data += data.split(b'END_OF_FILE')[0]
                 sender = data.split(b'END_OF_FILE_')[1].decode()
                 break
             file_data += data
@@ -78,7 +87,6 @@ class Server:
             f.write(file_data)
         print(f"File received and saved as '{file_name}'")
         self.bark_detector.update_audio_files()
-        #self.bark_detector.manual_message()
 
     def process(self, message, client):
         print(f"Received message: {message}")
@@ -88,8 +96,8 @@ class Server:
             case "1":  # allumer le programme
                 self.start_program()
             case message if message.startswith("2"):
-                received_voice = eval(message.split(" ", maxsplit=1)[1])
-                self.bark_detector.manual_detection(received_voice)
+                received_voice = str(message.split(" ", maxsplit=1)[1])
+                self.bark_detector.manual_message(received_voice)
             case message if message.startswith("3"):
                 received_thresholds = eval(message.split(" ", maxsplit=1)[1])
                 new_db_threshold = received_thresholds[0]
@@ -112,8 +120,12 @@ class Server:
                 client.send(message.encode())
             case "REQUEST_LAST_BARKS":
                 last_barks = get_last_barks()
-                last_barks = self.format_last_barks(last_barks)
-                last_barks = str(last_barks) + "END_OF_MESSAGE"
+                print(f"{last_barks = }")
+                if last_barks:
+                    last_barks = self.format_last_barks(last_barks)
+                    last_barks = str(last_barks) + "END_OF_MESSAGE"
+                else:
+                    last_barks = "NO_BARKS"
                 client.send(last_barks.encode())
             case _:
                 print("Unhandled message.")
@@ -137,20 +149,23 @@ class Server:
         return formatted_date
 
     def start_program(self):
-        self.bark_detector = BarkDetector()
-        self.current_instance = threading.Thread(target=self.start_detection, args=(self.bark_detector,))
-        self.current_instance.start()
+        if not self.current_instance:
+            self.bark_detector = BarkDetector()
+            self.current_instance = threading.Thread(target=self.start_detection, args=(self.bark_detector,))
+            self.current_instance.start()
 
     def start_detection(self, bark_detector: BarkDetector):
-        with sd.InputStream(callback=bark_detector.detect_bark, channels=1, device=0, samplerate=SAMPLE_RATE):
-            print("Enregistrement en cours. Appuyez sur Ctrl+C pour arrêter.")
-            try:
-                while not self.stop_event.is_set():
-                    print(self.stop_event)
-                    sd.sleep(1000)
-            except KeyboardInterrupt:
-                print("Enregistrement arrêté.")
-            print("Détection arretée")
+        try:
+            with sd.InputStream(callback=bark_detector.detect_bark, channels=1, device=1, samplerate=SAMPLE_RATE):
+                print("Enregistrement en cours. Appuyez sur Ctrl+C pour arrêter.")
+                try:
+                    while not self.stop_event.is_set():
+                        sd.sleep(1000)
+                except KeyboardInterrupt:
+                    print("Enregistrement arrêté.")
+                print("Détection arretée")
+        except Exception:
+            print("Détection déjà en cours")
 
     def stop_program(self):
         self.stop_event.set()

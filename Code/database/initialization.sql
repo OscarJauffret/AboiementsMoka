@@ -1,8 +1,8 @@
-create database if not exists MokaDB;
+create database if not exists mokadb;
 
-use MokaDB;
+use mokadb;
 
-create table if not exists KnownBarks (
+create table if not exists knownbarks (
     id int primary key auto_increment,
     bark_id int not null,
     harmonic int not null,
@@ -10,14 +10,14 @@ create table if not exists KnownBarks (
     unique (bark_id, harmonic, amplitude)
 );
 
-create table if not exists Parameters (
+create table if not exists parameters (
     id int primary key auto_increment,
     name varchar(255) not null,
     value float not null,
     unique (name)
 );
 
-create table if not exists Barks (
+create table if not exists barks (
     id int primary key auto_increment,
     date timestamp not null,
     mode enum('Automatic', 'Manual', 'Not handled') not null,

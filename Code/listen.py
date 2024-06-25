@@ -32,15 +32,15 @@ def save_bark(file_path):
     power = fourier_transform(indata)
     plot_data(power)
     harmonics = get_highest_harmonics(power)
-    print(harmonics)
-    #insert_known_bark(harmonics)
+    #print(len(harmonics))
+    insert_known_bark(harmonics)
 
 def plot_data(power):
     plt.plot(power, 'o', label="power")
     plt.legend()
     plt.show()
 
-def get_highest_harmonics(power, threshold_ratio=0.1):
+def get_highest_harmonics(power, threshold_ratio=0.6):
     harmonics = []
     max_amplitude = np.max(power)
     power_normalized = power / max_amplitude
