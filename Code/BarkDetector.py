@@ -34,6 +34,7 @@ class BarkDetector:
 
     def update_audio_files(self):
         self.audio_files = self._list_files("./audio")
+        print("Audio files: ", self.audio_files)
 
     def initialize_thresholds(self):
         parameters = get_parameters()
@@ -128,7 +129,10 @@ class BarkDetector:
         if voice is None:
             voice = random.randint(0, len(self.audio_files) - 1)
         else:
+            print("Voice: ", voice, end=" ")
             voice = self.available_voices.index(voice)
+            print("It is number: ", voice)
+
         chosen_file = random.choice(self.audio_files[voice])
         if not chosen_file:
             self.play_sound()
