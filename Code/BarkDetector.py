@@ -142,6 +142,8 @@ class BarkDetector:
 
     def compare_barks(self, harmonics, bark):
         found_resemblance = [False for _ in range(len(harmonics))]
+        if len(found_resemblance) == 0:
+            return
         for i, (harmonic, amplitude) in enumerate(harmonics):
             for bark_harmonic, bark_ampl in bark:
                 if self.harmonic_resemblance(harmonic, bark_harmonic) >= self.harmonic_resemblance_threshold:
