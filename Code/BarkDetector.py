@@ -115,7 +115,7 @@ class BarkDetector:
     def chose_voice(self):
         voice = random.randint(0, len(self.audio_files) - 1)
         if not self.audio_files[voice]:
-            self.chose_voice()
+            return self.chose_voice()
         return self.available_voices[voice]
 
 
