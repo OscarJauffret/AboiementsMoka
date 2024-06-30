@@ -106,11 +106,17 @@ class BarkDetector:
             sleep(self.delay_before_message)
             self.played_sound_recently = True
             threading.Timer(self.min_time_between_audio, self.reset_recent_variables).start()
-            voice = random.randint(0, len(self.audio_files) - 1)
-            voice = self.available_voices[voice]
+            voice = self.chose_voice()
             insert_bark([datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "Automatic", voice])
             self.play_sound(voice)
         self.buffer = []
+
+    def chose_voice(self):
+        voice = random.randint(0, len(self.audio_files) - 1)
+        if not self.audio_files[voice]:
+            self.chose_voice()
+        return self.available_voices[voice]
+
 
     def plot_data(self, indata, power):
         plt.plot(indata, label="indata")
