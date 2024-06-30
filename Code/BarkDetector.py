@@ -100,8 +100,9 @@ class BarkDetector:
     def handle_high_volume(self, indata):
         power = self.fourier_transform(indata)
         harmonics = get_highest_harmonics(power)
-        print(f"{harmonics = }")
+        #print(f"{harmonics = }")
         if self.compare_with_data(harmonics):
+            print("Detected bark at ", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             sleep(self.delay_before_message)
             self.played_sound_recently = True
             threading.Timer(self.min_time_between_audio, self.reset_recent_variables).start()
