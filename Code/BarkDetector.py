@@ -25,7 +25,7 @@ class BarkDetector:
         self.noise_threshold = 10
         self.harmonic_resemblance_threshold = 0.5
         self.amplitude_resemblance_threshold = 0.9
-        self.resemblance_threshold = 0.4
+        self.resemblance_threshold = 0.2
         self.delay_before_message = 2
         self.detected_sound_recently = False
         self.buffer = []  # Tampon pour stocker les données audio avant l'enregistrement
